@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <style>
+        html {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-flow: column;
+            min-width: 400px;
+            min-height: 400px;
+        }
+
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        * {
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        }
+
+        input, label, select {
+            display: block;
+            width: 100%;
+        }
+
+        input, select {
+            font-size: medium;
+        }
+
+        label {
+            font-size: larger;
+        }
+
+        button {
+            background-color: steelblue;
+            padding: 5px;
+            font-size: large;
+            color: white;
+            border-radius: 5px;
+        }
+
+        button:disabled {
+            background-color: dimgrey;
+            color: gainsboro;
+        }
+
+        .absolute_centered {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #puzzle_options_pane {
+            width: 100%;
+            height: 80px;
+            position: relative;
+            font-size: large;
+            background-color: teal;
+            z-index: 10;
+            flex: 0 1 auto;
+            border-bottom: 1px inset whitesmoke;
+        }
+
+        #puzzle_options_pane nav {
+            margin: auto;
+            background-color: steelblue;
+            width: 15em;
+            filter: drop-shadow( 5px 5px 4px black);
+        }
+
+        #puzzle_options_pane nav:hover {
+            cursor: pointer;
+        }
+
+        #puzzle_options_pane nav ul, #puzzle_options_pane nav li {
+            width: 100%;
+        }
+
+        #puzzle_options_pane nav ul {
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+        }
+
+        #puzzle_options_pane nav ul li {
+            position: relative;
+        }
+
+        #puzzle_options_pane nav ul li ul {
+            display: none;
+            position: absolute;
+            left: 0;
+            background-color: dodgerblue;
+        }
+
+        #puzzle_options_pane nav ul li a {
+            padding: 10px;
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+        }
+
+        #puzzle_options_pane nav ul li:hover ul {
+            display: block;
+        }
+
+        #puzzle_options_pane nav ul li ul li:hover:not(.enabled_if_puzzle_inactive) {
+            background-color: deepskyblue;
+        }
+
+        #puzzle_options_pane nav ul li ul li {
+            border-bottom: 1px solid rgba( 255, 255, 255, .3 );
+        }
+
+        #puzzle_options_pane nav ul li ul li:last-child {
+            border-bottom: initial;
+        }
+
+        .menu_option {
+            font-size: medium;
+        }
+
+        .enabled_if_puzzle_inactive {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+
+        .enabled_if_puzzle_inactive a {
+            cursor: inherit;
+        }
+
+        #puzzle_pane {
+            flex: 1 1 auto;
+            flex-grow: 1;
+            background-color: black;
+            position: relative;
+            min-height: 320px;
+        }
+
+        #options_dialog {
+            z-index: 30;
+            background-color: teal;
+            border: 5px inset whitesmoke;
+            border-radius: 10px;
+            width: 380px;
+            height: 300px;
+            padding: 15px;
+            color: white;
+        }
+
+        #modal_dialog {
+            z-index: 20;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            background-color: dimgray;
+            opacity: 0.6;
+            background: linear-gradient( 135deg, #D3D3D355 25%, transparent 25% ) -10px 0 / 20px 20px,
+                        linear-gradient( 225deg, #D3D3D3 25%, transparent 25% ) -10px 0 / 20px 20px,
+                        linear-gradient( 315deg, #D3D3D355 25%, transparent 25% ) 0px 0 / 20px 20px,
+                        linear-gradient( 45deg, #D3D3D3 25%, #E5E5F7 25% ) 0px 0 / 20px 20px;
+        }
+
+        .not_displayed {
+            display: none;
+        }
+
+        #options_dialog_buttons {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            padding: 10px;
+        }
+
+        #image_puzzle {
+            visibility: hidden;
+            width: 80%;
+            height: 80%;
+        }
+
+        #image_puzzle:defined {
+            visibility: visible;
+        }
+
+        .image_puzzle_message {
+            background-color: white;
+            padding: 5px;
+            border-radius: 10px;
+            border: 2px solid crimson;
+            font-size: 2vmin;
+        }
+
+        .image_puzzle_message h1, .image_puzzle_message h3 {
+            text-align: center;
+        }
+
+        .loading_animation {
+            animation: loading_animation_frames 0.6s infinite;
+        }
+
+        @keyframes loading_animation_frames {
+            0% {
+                transform: scale( 0.5 );
+            }
+            100% {
+                transform: scale( 1 );
+            }
+        }
+
+    </style>
+
+    <script type="module" src="./js/image-puzzle.js"></script>
+
+    <title>Lit Image Puzzle Component Demo - By Derek Moran 2023</title>
+</head>
+<body>
+
+    <div id="modal_dialog" class="dialog not_displayed"></div>
+
+    <div id="puzzle_options_pane">
+        <nav class="absolute_centered">
+            <ul>
+              <li><a href="#">Options</a>
+                <ul>
+                  <li class="menu_option" onclick="openSelectImageDialog()"><a href="#">Select image</a></li>
+                  <li class="menu_option not_displayed enabled_if_puzzle_active" onclick="openSetColoursDialog()"><a href="#">Set Colours</a></li>
+                  <li class="menu_option not_displayed enabled_if_puzzle_active" onclick="openShufflePiecesDialog()"><a href="#">Shuffle pieces</a></li>
+                  <li class="menu_option enabled_if_puzzle_inactive"><a href="#">Set Colours</a></li>
+                  <li class="menu_option enabled_if_puzzle_inactive"><a href="#">Shuffle pieces</a></li>
+                </ul>
+              </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div id="puzzle_pane">
+
+        <div id="options_dialog" class="dialog absolute_centered not_displayed">
+
+            <div id="dialog_for_image_type_selection" class="not_displayed">
+
+                <label for="selection_for_image_type">Select an image:</label>
+                <select id="selection_for_image_type" onchange="refreshImageTypeSectionsVisibility()">
+                    <option value="./images/image1.png">Pupper</option>
+                    <option value="./images/image2.png">Neuschwanstein</option>
+                    <option value="./images/image3.png">Grand Canyon</option>
+                    <option value="./images/image4.gif">Times Square (Animated)</option>
+                    <option value="custom_url">YOUR OWN IMAGE: Provide a url</option>
+                    <option value="custom_image">YOUR OWN IMAGE: Provide an upload</option>
+                </select>
+
+                <div id="section_for_custom_url" style="padding-top: 5px;">
+                    <label for="input_for_custom_url">Paste in a url to an image:</label>
+                    <input id="input_for_custom_url" type="text" oninput="refreshImageTypeSectionsVisibility()">
+                </div>
+
+                <div id="section_for_custom_image" style="padding-top: 5px;">
+                    <label for="input_for_custom_image">Upload an image:</label>
+                    <input id="input_for_custom_image" type="file" accept="image/*" oninput="refreshImageTypeSectionsVisibility()" />
+                </div>
+
+                <label for="selection_for_number_of_pieces" style="padding-top: 15px;">Select number of pieces:</label>
+                <select id="selection_for_number_of_pieces">
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                    <option value="64">64</option>
+                </select>
+                <p style="margin-top: 0; margin-left: 5px; padding-top: 0; font-size: smaller;">Note that actual number of pieces may differ as it will depend upon your image dimensions</p>
+            </div>
+
+            <div id="dialog_for_setting_colours" class="not_displayed">
+                <div>
+                    <label for="input_for_border_colour">Puzzle Border</label>
+                    <input id="input_for_border_colour" type="color">
+                </div>
+
+                <div style="padding-top: 50px;">
+                    <label for="input_for_background_colour">Background Area</label>
+                    <input  id="input_for_background_colour" type="color">
+                </div>
+            </div>
+
+            <div id="dialog_for_shuffling_pieces" class="not_displayed">
+                <p style="font-size: xx-large; text-align: center;">Shuffle the pieces?</p>
+            </div>
+
+            <div id="options_dialog_buttons">
+                <button disabled id="options_dialog_button_ok">OK</button>
+                <button id="options_dialog_button_cancel">Cancel</button>
+            </div>
+        </div>
+
+        <image-puzzle id="image_puzzle" class="absolute_centered" borderColour="#FF0000">
+            <div class="image_puzzle_message" slot="no_image_source_message">
+                <h1>Lit Image Puzzle Component Demo</h1>
+                <h3>By Derek Moran 2023</h3>
+                <p>
+                    This is a demo of a Lit component which turns images into drag and drop puzzles.
+                    Please use the above options menu to select an image.
+                    Drag one piece over another to swap them.
+                    Continue until you solve the puzzle.
+                </p>
+                <p>
+                    Note that this is only a proof of concept and uses simple rectangular pieces.
+                    You'll be given a border to help you find the edges, but you'll still need to use an
+                    image with suffient detail to distinguish inner pieces.
+                    If it is hard to see the border on your image you can select new colours from the options menu.
+                </p>
+                <p>
+                    Developed and tested for Chrome 114+, but also seems to work well in Firefox 114+ and Edge 114+.
+                    In Safari 16.5+ the experience is degraded as there are no drag/drop ghost images, but it does seem to work otherwise.
+                    Experienced best on non-mobile devices, but did seem to work ok on a Galaxy S22, so YMMV.
+                </p>
+            </div>
+            <div class="image_puzzle_message" slot="currently_loading_image_message">
+                <h1 class="loading_animation">Loading image ...</h1>
+            </div>
+            <div class="image_puzzle_message" slot="error_loading_image_message">
+                <h1>Error</h1>
+                <p>Could not load your image. Try selecting another one from the above options menu.</p>
+            </div>
+        </image-puzzle>
+
+    </div>
+
+    <script>
+
+        let dialogState = {
+            selectedImageType: './images/image1.png',
+            customUrlSrc: '',
+            customImageSrc: '',
+            src: '',
+            backgroundColour: '#000000',
+            borderColour: '#FF0000',
+            numberOfPieces: 16
+        }
+
+        const elements = {
+            puzzlePane: document.getElementById( 'puzzle_pane' ),
+            puzzleComponent: document.getElementById( 'image_puzzle' ),
+            itemsEnabledIfPuzzleActive: document.querySelectorAll( '.enabled_if_puzzle_active' ),
+            itemsEnabledIfPuzzleInactive: document.querySelectorAll( '.enabled_if_puzzle_inactive' ),
+            optionsDialogs: document.querySelectorAll( '.dialog' ),
+            optionsDialogButtonOk: document.getElementById( 'options_dialog_button_ok' ),
+            optionsDialogButtonCancel: document.getElementById( 'options_dialog_button_cancel' ),
+            dialogForImageTypeSelection: document.getElementById( 'dialog_for_image_type_selection' ),
+            selectionForImageType: document.getElementById( 'selection_for_image_type' ),
+            sectionForCustomUrl: document.getElementById( 'section_for_custom_url' ),
+            inputForCustomUrl: document.getElementById( 'input_for_custom_url' ),
+            sectionForCustomImage: document.getElementById( 'section_for_custom_image' ),
+            inputForCustomImage: document.getElementById( 'input_for_custom_image' ),
+            selectionForNumberOfPieces: document.getElementById( 'selection_for_number_of_pieces' ),
+            dialogForSettingColours: document.getElementById( 'dialog_for_setting_colours' ),
+            inputForBorderColour: document.getElementById( 'input_for_border_colour' ),
+            inputForBackgroundColour: document.getElementById( 'input_for_background_colour' ),
+            dialogForShufflingPieces: document.getElementById( 'dialog_for_shuffling_pieces' ),
+        }
+
+        elements.puzzleComponent.addEventListener(
+            'componentStateChanged',
+            (e) => { refreshOptionsMenu( event.detail.state ); }
+        );
+
+        function refreshOptionsMenu( puzzleComponentState ) {
+            let toggleItemDisplayedFunc = ( item, displayedCondition ) => {
+                if ( displayedCondition ) {
+                    item.classList.remove( 'not_displayed' );
+                } else {
+                    item.classList.add( 'not_displayed' );
+                }
+            };
+
+            const loadedState = elements.puzzleComponent.componentStates.loaded;
+
+            elements.itemsEnabledIfPuzzleActive.forEach(
+                ( item ) => toggleItemDisplayedFunc( item, puzzleComponentState == loadedState )
+            );
+
+            elements.itemsEnabledIfPuzzleInactive.forEach(
+                ( item ) => toggleItemDisplayedFunc( item, puzzleComponentState != loadedState )
+            );
+        }
+
+        function openSelectImageDialog() {
+            elements.dialogForImageTypeSelection.classList.remove( 'not_displayed' );
+
+            elements.selectionForImageType.value = dialogState.selectedImageType;
+            elements.inputForCustomUrl.value = dialogState.customUrlSrc;
+            elements.selectionForNumberOfPieces.value = dialogState.numberOfPieces;
+
+            refreshImageTypeSectionsVisibility();
+
+            elements.optionsDialogButtonOk.setAttribute( 'onclick', 'closeSelectImageDialog(false)' );
+            elements.optionsDialogButtonCancel.setAttribute( 'onclick', 'closeSelectImageDialog(true)' );
+
+            setOptionsDialogsOpened( true );
+        }
+
+        function closeSelectImageDialog( isCancelled ) {
+            elements.dialogForImageTypeSelection.classList.add( 'not_displayed' );
+
+            if ( isCancelled ) {
+                elements.selectionForImageType.value = dialogState.selectedImageType;
+                setOptionsDialogsOpened( false );
+                return;
+            }
+
+            dialogState.selectedImageType = elements.selectionForImageType.value;
+            dialogState.numberOfPieces = elements.selectionForNumberOfPieces.value;
+
+            switch( elements.selectionForImageType.value ) {
+                case 'custom_url':
+                    dialogState.customUrlSrc = dialogState.src = elements.inputForCustomUrl.value.trim();
+                    break;
+                case 'custom_image':
+                    const img = document.createElement("img");
+                    try { URL.revokeObjectURL( dialogState.src ); } catch {}
+                    img.src = URL.createObjectURL( elements.inputForCustomImage.files[0] );
+                    dialogState.customImageSrc = dialogState.src = img.src;
+                    break;
+                default:
+                    dialogState.src = elements.selectionForImageType.value;
+                    break;
+            }
+
+            elements.puzzleComponent.setAttribute( 'src', dialogState.src );
+            elements.puzzleComponent.setAttribute( 'desiredNumberOfPieces', dialogState.numberOfPieces );
+
+            setOptionsDialogsOpened( false );
+        }
+
+        function refreshImageTypeSectionsVisibility() {
+            switch( elements.selectionForImageType.value ) {
+                case 'custom_url':
+                    elements.sectionForCustomUrl.classList.remove( 'not_displayed' );
+                    elements.sectionForCustomImage.classList.add( 'not_displayed' );
+                    elements.optionsDialogButtonOk.disabled = elements.inputForCustomUrl.value.trim().length == 0;
+                    break;
+                case 'custom_image':
+                    elements.sectionForCustomUrl.classList.add( 'not_displayed' );
+                    elements.sectionForCustomImage.classList.remove( 'not_displayed' );
+                    elements.optionsDialogButtonOk.disabled = elements.inputForCustomImage.value == 0;
+                    break;
+                default:
+                    elements.sectionForCustomUrl.classList.add( 'not_displayed' );
+                    elements.sectionForCustomImage.classList.add( 'not_displayed' );
+                    elements.optionsDialogButtonOk.disabled = false;
+                    break;
+            }
+        }
+
+        function openSetColoursDialog() {
+            elements.dialogForSettingColours.classList.remove( 'not_displayed' );
+
+            elements.inputForBorderColour.value = dialogState.borderColour;
+            elements.inputForBackgroundColour.value = dialogState.backgroundColour;
+
+            elements.optionsDialogButtonCancel.setAttribute( 'onclick', 'closeSetColoursDialog(true)' );
+            elements.optionsDialogButtonOk.setAttribute( 'onclick', 'closeSetColoursDialog(false)' );
+
+            setOptionsDialogsOpened( true );
+        }
+
+        function closeSetColoursDialog( isCancelled ) {
+            elements.dialogForSettingColours.classList.add( 'not_displayed' );
+
+            if ( isCancelled ) {
+                setOptionsDialogsOpened( false );
+                return;
+            }
+
+            elements.puzzleComponent.borderColour = dialogState.borderColour = elements.inputForBorderColour.value;
+            elements.puzzlePane.style.backgroundColor = dialogState.backgroundColour = elements.inputForBackgroundColour.value;
+
+            setOptionsDialogsOpened( false );
+        }
+
+        function openShufflePiecesDialog() {
+            elements.dialogForShufflingPieces.classList.remove( 'not_displayed' );
+
+            elements.optionsDialogButtonOk.setAttribute( 'onclick', 'closeShufflePiecesDialog(false)' );
+            elements.optionsDialogButtonCancel.setAttribute( 'onclick', 'closeShufflePiecesDialog(true)' );
+
+            setOptionsDialogsOpened( true );
+        }
+
+        function closeShufflePiecesDialog( isCancelled ) {
+            elements.dialogForShufflingPieces.classList.add( 'not_displayed' );
+
+            if ( isCancelled ) {
+                setOptionsDialogsOpened( false );
+                return;
+            }
+
+            elements.puzzleComponent.shufflePieces();
+            setOptionsDialogsOpened( false );
+        }
+
+        function setOptionsDialogsOpened( isOpen ) {
+            elements.optionsDialogs.forEach(
+                ( dialog ) => {
+                    if ( isOpen ) {
+                        dialog.classList.remove( 'not_displayed' );
+                    } else {
+                        dialog.classList.add( 'not_displayed' );
+                    }
+                }
+            );
+        }
+
+    </script>
+
+</body>
+</html>
