@@ -9,12 +9,14 @@ A Lit based web component that turns provided images into simple drag and drop p
   * `demo.html` is the demo page
   * `./images` are sample images used by the demo page
 
+This is my first Lit component, so I wouldn't advise using this as an example of best practices. But please do enjoy it for what it is :)
+
 ### Properties
 
 | Property | Type | Description |
 |--|--|--|
 | `src` | String | Path to the image that you want to turn into a puzzle |
-| `desiredNumberOfPieces` | Integer | Desired number of pieces. *Desired* because actual number of pieces may vary slightly depending on the dimsensions of the image used. Must be >=4 and <= 64. If not set this will default to 16 |
+| `desiredNumberOfPieces` | Integer | Desired number of pieces. *Desired* because actual number of pieces may vary slightly depending on the dimensions of the image used. Must be >=4 and <= 64. If not set this will default to 16 |
 | `borderColour` | String | Edge pieces of an unsolved puzzle are given a border that will be this colour. If not set, or not a valid HTML colour, this will default to white. |
 
 ### Events
